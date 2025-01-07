@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Verbomed - Healthcare Communication Platform
+
+![Verbomed Screenshot](/public/Screenshot%202025-01-06%20at%2011.16.56%20PM.png)
+
+## Overview
+
+Verbomed is a modern healthcare communication platform designed to bridge the gap between healthcare providers and patients. Built with Next.js and powered by AI, it offers seamless communication tools with features like voice interaction, medical term translation, and intelligent note summarization.
+
+## Features
+
+### 🎤 Voice Interaction
+- Speech-to-text for easy note taking
+- Text-to-speech for accessibility
+- Powered by Azure Speech Services
+
+### 🤖 AI-Powered Features
+- Automatic summarization of medical notes using GPT-4
+- Medical terminology translation to plain language
+- Intelligent context preservation
+
+### 🔒 Security & Authentication
+- Secure authentication with Supabase
+- HIPAA-compliant data handling
+- End-to-end encryption
+
+### 💅 Modern UI/UX
+- Clean, professional interface with shadcn UI
+- Responsive design for all devices
+- Intuitive navigation
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript
+- **UI Components**: shadcn UI, Tailwind CSS
+- **Authentication**: Supabase Auth
+- **Database**: Supabase
+- **AI Services**: 
+  - OpenAI GPT-4 for summarization and translation
+  - Azure Speech Services for voice features
+- **Styling**: Tailwind CSS with custom color scheme
+
+## Color Scheme
+
+```css
+- Background: #f8faef
+- Primary: #122f3b
+- Secondary: #594543
+- Accent: #a05b4c
+- Highlight: #e77155
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   ```env
+   # Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   # OpenAI Configuration
+   NEXT_PUBLIC_OPENAI_API_KEY=your-openai-api-key
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   # Azure Speech Services
+   NEXT_PUBLIC_AZURE_SPEECH_KEY=your-azure-speech-key
+   NEXT_PUBLIC_AZURE_SPEECH_REGION=your-azure-region
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Contributing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Acknowledgments
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Built with [Next.js](https://nextjs.org/)
+- UI components by [shadcn/ui](https://ui.shadcn.com/)
+- Authentication by [Supabase](https://supabase.com/)
+- AI features powered by [OpenAI](https://openai.com/) and [Azure](https://azure.microsoft.com/)
