@@ -1,6 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Define the SpeechRecognition type
+interface SpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  start: () => void;
+  stop: () => void;
+  onend: () => void;
+}
+
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: {
+    [key: number]: {
+      0: {
+        transcript: string;
+      };
+      isFinal: boolean;
+    };
+  };
+}
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardHeader } from "@/components/ui/card";
@@ -20,10 +42,13 @@ interface JournalEntry {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [currentNote, setCurrentNote] = useState('');
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [partialSpeech, setPartialSpeech] = useState('');
+  const [fullSpeech, setFullSpeech] = useState('');
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -37,34 +62,74 @@ export default function DashboardPage() {
     checkUser();
   }, [router, supabase.auth]);
 
-  const startVoiceRecording = async () => {
-    try {
-      if (isRecording) {
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const rec = new (window as any).webkitSpeechRecognition() as SpeechRecognition;
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (event) => {
+        let interim = '';
+        const resultsArray = Object.values(event.results);
+        for (let i = event.resultIndex; i < resultsArray.length; i++) {
+          if (event.results[i].isFinal) {
+            setFullSpeech((prev) => prev + event.results[i][0].transcript);
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        setPartialSpeech(interim);
+      };
+      rec.onend = () => {
         setIsRecording(false);
-        const text = await speechToText();
-        setCurrentNote(prev => prev + ' ' + text);
-      } else {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        setIsRecording(true);
-      }
-    } catch {
-      setError('Unable to access microphone');
+        if (isRecording) {
+          rec.start(); // Restart if user hasn't turned mic off
+          setIsRecording(true);
+        }
+      };
+      setRecognition(rec);
+    } else {
+      setError('Speech recognition not supported');
+    }
+  }, [isRecording]);
+
+  useEffect(() => {
+    if (!user && !loading) {
+      router.push('/login');
+    }
+    setLoading(false);
+  }, [user, router]);
+
+  const startRealTimeTranscription = () => {
+    if (recognition) {
+      recognition.start();
+      setIsRecording(true);
+    }
+  };
+
+  const toggleMic = () => {
+    if (!recognition) return;
+    if (isRecording) {
+      recognition.stop();
       setIsRecording(false);
+    } else {
+      recognition.start();
+      setIsRecording(true);
     }
   };
 
   const saveNote = async () => {
-    if (currentNote.trim()) {
+    if (fullSpeech.trim()) {
       try {
-        const summary = await summarizeText(currentNote);
+        const summary = await summarizeText(fullSpeech);
         const newEntry: JournalEntry = {
           id: String(Date.now()),
-          content: currentNote,
+          content: fullSpeech,
           summary,
           created_at: new Date().toISOString()
         };
         setJournalEntries([newEntry, ...journalEntries]);
-        setCurrentNote('');
+        setFullSpeech(''); // Clear the speech content after saving
+        setPartialSpeech('');
       } catch {
         setError('Failed to save note');
       }
@@ -73,8 +138,8 @@ export default function DashboardPage() {
 
   const translateToPlainLanguage = async () => {
     try {
-      const translated = await translateMedicalTerms(currentNote);
-      setCurrentNote(translated);
+      const translated = await translateMedicalTerms(fullSpeech);
+      setFullSpeech(translated);
     } catch {
       setError('Translation failed');
     }
@@ -82,7 +147,7 @@ export default function DashboardPage() {
 
   const playTextToSpeech = async () => {
     try {
-      await textToSpeech(currentNote);
+      await textToSpeech(fullSpeech);
     } catch {
       setError('Text-to-speech failed');
     }
@@ -93,14 +158,13 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  if (!user) {
-    router.push('/login');
-    return null;
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faef]">
-      <header className="bg-[#122f3b] text-white py-6">
+    <div className="min-h-screen bg-[#f8faef] flex flex-col">
+      <header className="w-full bg-[#122f3b] text-white py-6 fixed top-0 z-50">
         <div className="container mx-auto px-4">
           <nav className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Verbomed</h1>
@@ -115,7 +179,18 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
+      <div className="w-full flex justify-center mt-32 mb-4">
+        <div
+          className={`rounded-full border-4 border-[#122f3b] p-8 cursor-pointer ${
+        isRecording ? 'animate-pulse' : ''
+          }`}
+          onClick={toggleMic}
+        >
+          <Mic className="w-10 h-10 text-[#122f3b]" />
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 pb-12">
         {error && (
           <Alert className="mb-4" variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -126,15 +201,6 @@ export default function DashboardPage() {
           <Card className="mb-8">
             <CardHeader>
               <div className="flex flex-wrap gap-4 mb-4">
-                <Button
-                  onClick={startVoiceRecording}
-                  className="flex items-center gap-2"
-                  variant={isRecording ? "destructive" : "default"}
-                >
-                  <Mic className="w-5 h-5" />
-                  {isRecording ? 'Stop Recording' : 'Start Recording'}
-                </Button>
-                
                 <Button
                   onClick={playTextToSpeech}
                   className="flex items-center gap-2"
@@ -156,8 +222,11 @@ export default function DashboardPage() {
 
               <textarea
                 className="w-full p-4 border rounded-lg mb-4 min-h-32 focus:ring-2 focus:ring-[#122f3b] focus:border-transparent"
-                value={currentNote}
-                onChange={(e) => setCurrentNote(e.target.value)}
+                value={fullSpeech + partialSpeech}
+                onChange={(e) => {
+                  setFullSpeech(e.target.value);
+                  setPartialSpeech('');
+                }}
                 placeholder="Enter your notes here..."
               />
 
