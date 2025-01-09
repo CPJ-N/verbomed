@@ -121,8 +121,20 @@ export default function DashboardPage() {
     if (fullSpeech.trim()) {
       try {
         const summary = await summarizeText(fullSpeech);
+        const { data, error } = await supabase
+          .from('journal_entries')
+          .insert({
+            content: fullSpeech,
+            summary,
+            created_by: user?.id,  // Changed from user_id to created_by
+            created_at: new Date().toISOString()
+          })
+          .select();
+
+        if (error) throw error;
+
         const newEntry: JournalEntry = {
-          id: String(Date.now()),
+          id: data[0].id,
           content: fullSpeech,
           summary,
           created_at: new Date().toISOString()
@@ -135,6 +147,28 @@ export default function DashboardPage() {
       }
     }
   };
+
+  const fetchSavedNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('journal_entries')
+        .select('*')
+        .eq('created_by', user?.id)  // Changed from user_id to created_by
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setJournalEntries(data);
+    } catch {
+      setError('Failed to fetch saved notes');
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedNotes();
+    }
+  }, [user]);
 
   const translateToPlainLanguage = async () => {
     try {
