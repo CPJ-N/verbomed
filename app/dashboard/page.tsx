@@ -1,8 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Card, CardHeader } from "@/components/ui/card";
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Mic, Volume2, Globe, FileText } from 'lucide-react';
+import { textToSpeech } from '@/lib/speech';
+import { summarizeText, translateMedicalTerms } from '@/lib/ai';
+import { useAuth } from '@/lib/auth';
 
-// Define the SpeechRecognition type
 interface SpeechRecognition {
   continuous: boolean;
   interimResults: boolean;
@@ -14,24 +22,24 @@ interface SpeechRecognition {
 
 interface SpeechRecognitionEvent {
   resultIndex: number;
-  results: {
-    [key: number]: {
-      0: {
-        transcript: string;
-      };
-      isFinal: boolean;
-    };
-  };
+  results: SpeechRecognitionResultList;
 }
-import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Card, CardHeader } from "@/components/ui/card";
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Mic, Volume2, Globe, FileText } from 'lucide-react';
-import { textToSpeech, speechToText } from '@/lib/speech';
-import { summarizeText, translateMedicalTerms } from '@/lib/ai';
-import { useAuth } from '@/lib/auth';
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
 
 interface JournalEntry {
   id: string;
@@ -64,13 +72,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
-      const rec = new (window as any).webkitSpeechRecognition() as SpeechRecognition;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rec = new (window as any).webkitSpeechRecognition();
       rec.continuous = true;
       rec.interimResults = true;
-      rec.onresult = (event) => {
+      rec.onresult = (event: SpeechRecognitionEvent) => {
         let interim = '';
-        const resultsArray = Object.values(event.results);
-        for (let i = event.resultIndex; i < resultsArray.length; i++) {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
             setFullSpeech((prev) => prev + event.results[i][0].transcript);
           } else {
@@ -97,14 +105,7 @@ export default function DashboardPage() {
       router.push('/login');
     }
     setLoading(false);
-  }, [user, router]);
-
-  const startRealTimeTranscription = () => {
-    if (recognition) {
-      recognition.start();
-      setIsRecording(true);
-    }
-  };
+  }, [user, router, loading]);
 
   const toggleMic = () => {
     if (!recognition) return;
@@ -148,7 +149,7 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchSavedNotes = async () => {
+  const fetchSavedNotes = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('journal_entries')
@@ -162,13 +163,13 @@ export default function DashboardPage() {
     } catch {
       setError('Failed to fetch saved notes');
     }
-  };
+  }, [user, supabase, setError, setJournalEntries]);
 
   useEffect(() => {
     if (user) {
       fetchSavedNotes();
     }
-  }, [user]);
+  }, [user, fetchSavedNotes]);
 
   const translateToPlainLanguage = async () => {
     try {

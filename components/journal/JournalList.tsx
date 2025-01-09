@@ -32,7 +32,7 @@ export function JournalList({ journalId }: JournalListProps) {
     } finally {
       setLoading(false);
     }
-  }, [journalId, supabase]);
+  }, [journalId]);
 
   useEffect(() => {
     fetchEntries();
