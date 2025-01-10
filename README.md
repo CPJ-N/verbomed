@@ -1,6 +1,6 @@
 # Verbomed - Healthcare Communication Platform
 
-![Verbomed Screenshot](/public/Screenshot%202025-01-06%20at%2011.16.56%20PM.png)
+![Verbomed Logo Preview](/public/logo-preview.png)
 
 ## Overview
 
@@ -35,8 +35,8 @@ Verbomed is a modern healthcare communication platform designed to bridge the ga
 - **Authentication**: Supabase Auth
 - **Database**: Supabase
 - **AI Services**: 
-  - OpenAI GPT-4 for summarization and translation
-  - Azure Speech Services for voice features
+- Azure Speech Services for voice features
+- Together AI for enhanced AI capabilities
 - **Styling**: Tailwind CSS with custom color scheme
 
 ## Color Scheme
@@ -64,7 +64,7 @@ Verbomed is a modern healthcare communication platform designed to bridge the ga
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
    # OpenAI Configuration
-   NEXT_PUBLIC_OPENAI_API_KEY=your-openai-api-key
+   TOGETHER_API_KEY=your-together-api-key
 
    # Azure Speech Services
    NEXT_PUBLIC_AZURE_SPEECH_KEY=your-azure-speech-key
@@ -88,4 +88,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Built with [Next.js](https://nextjs.org/)
 - UI components by [shadcn/ui](https://ui.shadcn.com/)
 - Authentication by [Supabase](https://supabase.com/)
-- AI features powered by [OpenAI](https://openai.com/) and [Azure](https://azure.microsoft.com/)
+- AI features powered by [Together AI](https://together.xyz/) and [Azure](https://azure.microsoft.com/)
