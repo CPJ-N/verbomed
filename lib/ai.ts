@@ -36,11 +36,11 @@ export async function translateMedicalTerms(text: string): Promise<string> {
       messages: [
         {
           role: "system",
-          content: "You are a medical translator that converts medical terminology into plain, easy-to-understand language. Maintain accuracy while making the text accessible to non-medical professionals."
+          content: "You are an AI medical assistant specializing in summarizing medical notes for clear and efficient communication. Focus on key clinical details, exclude unnecessary information, and simplify the summary so that someone without medical expertise can easily understand it. Ensure the tone is professional and approachable."
         },
         {
           role: "user",
-          content: `Please translate this medical text into plain language: ${text}`
+          content: `Summarize the following medical note with a focus on key clinical details, ensuring the summary is easy for non-experts to understand: ${text}`
         }
       ],
       max_tokens: 200
