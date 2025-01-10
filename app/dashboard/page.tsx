@@ -6,9 +6,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Mic, Volume2, Globe, FileText } from 'lucide-react';
+import { Mic, Volume2, FileText, Trash2 } from 'lucide-react'; // Add Trash2 icon
 import { textToSpeech } from '@/lib/speech';
-import { summarizeText, translateMedicalTerms } from '@/lib/ai';
+import { summarizeText } from '@/lib/ai';
 import { useAuth } from '@/lib/auth';
 
 interface SpeechRecognition {
@@ -122,6 +122,7 @@ export default function DashboardPage() {
     if (fullSpeech.trim()) {
       try {
         const summary = await summarizeText(fullSpeech);
+        console.log('Summary:', summary);
         const { data, error } = await supabase
           .from('journal_entries')
           .insert({
@@ -171,15 +172,6 @@ export default function DashboardPage() {
     }
   }, [user, fetchSavedNotes]);
 
-  const translateToPlainLanguage = async () => {
-    try {
-      const translated = await translateMedicalTerms(fullSpeech);
-      setFullSpeech(translated);
-    } catch {
-      setError('Translation failed');
-    }
-  };
-
   const playTextToSpeech = async () => {
     try {
       await textToSpeech(fullSpeech);
@@ -191,6 +183,21 @@ export default function DashboardPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+
+  const deleteNote = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('journal_entries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setJournalEntries(journalEntries.filter(entry => entry.id !== id));
+    } catch {
+      setError('Failed to delete note');
+    }
   };
 
   if (loading) {
@@ -244,15 +251,6 @@ export default function DashboardPage() {
                   <Volume2 className="w-5 h-5" />
                   Text to Speech
                 </Button>
-
-                <Button
-                  onClick={translateToPlainLanguage}
-                  className="flex items-center gap-2"
-                  variant="secondary"
-                >
-                  <Globe className="w-5 h-5" />
-                  Translate Terms
-                </Button>
               </div>
 
               <textarea
@@ -285,6 +283,14 @@ export default function DashboardPage() {
                     <span className="text-sm text-[#594543]">
                       {new Date(entry.created_at).toLocaleDateString()}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteNote(entry.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                   <p className="text-[#122f3b]">{entry.content}</p>
                   {entry.summary && (

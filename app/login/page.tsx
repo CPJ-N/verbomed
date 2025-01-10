@@ -26,6 +26,7 @@ export default function LoginPage() {
           alt="Healthcare communication dashboard"
           fill
           priority
+          sizes="(max-width: 1024px) 0vw, 50vw"
           className="object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
