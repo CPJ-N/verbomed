@@ -30,26 +30,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 });
     }
 
-    const { data, error } = await supabase.storage
-      .from('med-docs')
-      .upload(`${userId}/${file.name}`, file);
-    if (!data) throw new Error('Upload failed: No data returned');
-    const { path } = data;
-
+    const filePath = `${userId}/${file.name}`;
     let fileUrl = '';
-    // If upload is successful, create a signed URL
-    if (!error) {
+
+    // Check if file already exists
+    const { data: existingFile } = await supabase.storage
+      .from('med-docs')
+      .list(userId, {
+        search: file.name
+      });
+
+    if (existingFile && existingFile.length > 0) {
+      // File exists, just get the signed URL
       const { data: signedUrlData, error: urlError } = await supabase
         .storage
         .from('med-docs')
-        .createSignedUrl(path, 3600); // 60 seconds expiry
+        .createSignedUrl(filePath, 3600);
+
       if (urlError) {
-        console.error('Error generating signed URL', urlError);
+        console.error('Error generating signed URL for existing file:', urlError);
       } else {
         fileUrl = signedUrlData.signedUrl;
       }
     } else {
-      console.error('Upload error:', error);
+      // File doesn't exist, upload it
+      const { data, error } = await supabase.storage
+        .from('med-docs')
+        .upload(filePath, file);
+
+      if (error || !data) {
+        throw new Error('Upload failed: ' + error?.message || 'No data returned');
+      }
+
+      // Get signed URL for new upload
+      const { data: signedUrlData, error: urlError } = await supabase
+        .storage
+        .from('med-docs')
+        .createSignedUrl(filePath, 3600);
+
+      if (urlError) {
+        console.error('Error generating signed URL for new file:', urlError);
+      } else {
+        fileUrl = signedUrlData.signedUrl;
+      }
     }
 
     if (!fileUrl) {

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Mic, Volume2, FileText, Trash2 } from 'lucide-react'; // Add Trash2 icon
+import { Mic, Volume2, FileText, Trash2 } from 'lucide-react';
 import { textToSpeech } from '@/lib/speech';
 import { summarizeText } from '@/lib/ai';
 import { useAuth } from '@/lib/auth';
@@ -64,6 +64,7 @@ export default function DashboardPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -208,6 +209,13 @@ export default function DashboardPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+    }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -393,6 +401,7 @@ export default function DashboardPage() {
                   <input 
                     id="file-upload"
                     type="file" 
+                    ref={fileInputRef}
                     onChange={handleFileChange}
                     className="hidden"
                     accept="image/*"
@@ -410,13 +419,14 @@ export default function DashboardPage() {
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
-                      <Button
-                        onClick={() => setFile(null)}
-                        className="p-1 hover:bg-[#122f3b]/5 rounded-full transition-colors"
-                        title="Remove file"
-                      >
-                        <Trash2 className="w-4 h-4 text-[#594543] hover:text-red-500" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearFile}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                     </div>
                   )}
                   <Button 
