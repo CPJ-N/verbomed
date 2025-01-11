@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Mic, Volume2, Globe, FileText, Lock, User, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { Footer } from '@/components/Footer';
 
 function FeatureCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
   return (
@@ -32,7 +33,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8faef]">
+    <div className="min-h-screen bg-[#f8faef] flex flex-col">
       <header className="bg-[#122f3b] text-white py-6">
         <div className="container mx-auto px-4">
           <nav className="flex justify-between items-center">
@@ -48,7 +49,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-grow">
         <div className="max-w-4xl mx-auto">
           <section className="text-center mb-16">
             <h2 className="text-5xl font-bold text-[#122f3b] mb-6">
@@ -111,6 +112,7 @@ export default function Home() {
             </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

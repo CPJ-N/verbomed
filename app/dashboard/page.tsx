@@ -11,6 +11,7 @@ import { Mic, Volume2, FileText, Trash2 } from 'lucide-react';
 import { textToSpeech } from '@/lib/speech';
 import { summarizeText } from '@/lib/ai';
 import { useAuth } from '@/lib/auth';
+import { Footer } from '@/components/Footer';
 
 interface SpeechRecognition {
   continuous: boolean;
@@ -62,6 +63,7 @@ export default function DashboardPage() {
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'journal' | 'analysis'>('journal');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +129,7 @@ export default function DashboardPage() {
   const saveNote = async () => {
     if (fullSpeech.trim()) {
       try {
+        setIsSaving(true);
         const summary = await summarizeText(fullSpeech);
         console.log('Summary:', summary);
         const { data, error } = await supabase
@@ -152,6 +155,8 @@ export default function DashboardPage() {
         setPartialSpeech('');
       } catch {
         setError('Failed to save note');
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -253,7 +258,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8faef]">
+    <div className="min-h-screen bg-[#f8faef] flex flex-col">
       <header className="w-full bg-[#122f3b] text-white py-2 fixed top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -295,7 +300,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto p-4 mt-[80px] pb-12">
+      <main className="container mx-auto p-4 mt-[80px] pb-12 flex-grow">
         {error && (
           <Alert className="mb-4 max-w-4xl mx-auto" variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -342,9 +347,19 @@ export default function DashboardPage() {
                     <Button
                       onClick={saveNote}
                       className="flex items-center gap-2"
+                      disabled={isSaving}
                     >
-                      <FileText className="w-5 h-5" />
-                      Save Note
+                      {isSaving ? (
+                        <>
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-5 h-5" />
+                          Save Note
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardHeader>
@@ -467,6 +482,7 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
