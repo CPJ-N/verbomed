@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Mic, Volume2, Globe, FileText, Lock, User, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 function FeatureCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
   return (
@@ -97,6 +98,17 @@ export default function Home() {
               icon={<User className="h-6 w-6" />}
             />
           </div>
+          {/* Add the image here */}
+            <div className="mt-16">
+            <Image
+              src="/verbomed-visual.png"
+              alt="Verbomed Concept Flow Chart"
+              width={800}
+              height={400}
+              className="mx-auto rounded-lg shadow-2xl"
+              priority
+            />
+            </div>
         </div>
       </main>
     </div>

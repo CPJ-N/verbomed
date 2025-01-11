@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import Together from 'together-ai';
 
-const together = new Together({ apiKey: process.env.TOGETHER_API_KEY });
+const together = new Together({
+  apiKey: process.env.TOGETHER_API_KEY,
+  baseURL: "https://together.helicone.ai/v1",
+  defaultHeaders: {
+      "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+  },
+});
 
 export async function POST(request: Request) {
   try {
