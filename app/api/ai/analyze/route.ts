@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     Please provide this information in clear, detailed medical terms.`;
 
     const completion = await together.chat.completions.create({
-      model: 'meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo',
+      model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
       temperature: 0.2,
       max_tokens: 200,
       messages: [

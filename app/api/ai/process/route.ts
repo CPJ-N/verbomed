@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     }
 
     const completion = await together.chat.completions.create({
-      model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+      model: 'meta-llama/Llama-Vision-Free',
       messages: [
         {
           role: 'system',
